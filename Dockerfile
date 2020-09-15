@@ -1,7 +1,8 @@
-FROM    amd64/python:latest
+FROM    python:latest
 LABEL   maintainer="Tin La <@tintinator>"
 
 WORKDIR /app
+
 COPY    requirements.txt /app/
 RUN     pip install -r requirements.txt
 
