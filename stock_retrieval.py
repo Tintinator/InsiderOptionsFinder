@@ -10,18 +10,27 @@ import pandas as pd
 import re
 import xml.etree.ElementTree as ET
 
-# Retrieve current day
-today = date.today() - timedelta(days = 0) 
-year = today.strftime('%Y')
-month = today.strftime('%m')
-day = today.strftime('%d')
-today_format = year + month + day
-quarter = 'QTR' + str(int((int(month)-1)/3 + 1))
-print("Current Date: " + today.strftime('%m/%d/%y'))
+# Returns day as dict with keys: year, month, day, quarter, today, and today_format
+def getDate():
+    res = {}
+    today = date.today() - timedelta(days = 0) 
+    year = today.strftime('%Y')
+    month = today.strftime('%m')
+    day = today.strftime('%d')
+    today_format = year + month + day
+    quarter = 'QTR' + str(int((int(month)-1)/3 + 1))
+    res['today'] = today
+    res['year'] = year
+    res['month'] = month
+    res['day'] = day
+    res['today_format'] = today_format
+    res['quarter'] = quarter
+    print("Current Date: " + today.strftime('%m/%d/%y'))
+    return res
 
-# Construct daily report URL
+date = getDate()
 base_url = 'https://www.sec.gov/Archives/'
-daily_url = base_url + 'edgar/daily-index/' + year + '/' + quarter + '/form.' + today_format + '.idx'
+daily_url = base_url + 'edgar/daily-index/' + date['year'] + '/' + date['quarter'] + '/form.' + date['today_format'] + '.idx'
 print('idx link: ' + daily_url)
 
 # HARDCODED URL. REMOVE SOMETIME##
@@ -101,5 +110,5 @@ for line in rows:
                             print(exp_date)
                             print(amt)                                                
         except:
-            print('Failed on: ' + temp)
+            print('Failed on: ' + company_name)
             continue
