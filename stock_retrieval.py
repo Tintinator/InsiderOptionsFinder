@@ -28,6 +28,68 @@ def getDate():
     print("Current Date: " + today.strftime('%m/%d/%y'))
     return res
 
+def searchForOptions(report):
+    file_path = report[-2]
+    file_date = report[-3]
+    cik = report[-4]
+    report = report[1:len(report)-4]
+    temp = ' '.join(report)
+    company_name = temp.report('/')[0].split('\\')[0]
+
+    optionsReport = {}
+
+    # Is company listed on NASDAQ?
+    if company_ticker['Company Name'].str.contains(company_name).sum() <= 0:
+        return None
+
+    try:
+        file_path = file_path.split('/')
+        folder = [''.join(file_path[3].split('-')).split('.')[0]]	
+        file_path = '/'.join(file_path[:len(file_path)-1] + folder)
+        form_url = base_url + file_path
+        r = requests.get(form_url)
+        form4_path = re.search('(\/)([a-zA-Z0-9_-])*(.xml)', r.text)
+        final_url = form_url + form4_path.group(0)
+
+        # Grab the company's Form 4 and its derivative table.
+        form_filing = urllib.request.urlopen(final_url)
+        html = form_filing.read().decode('utf-8')
+        root = ET.fromstring(html)
+        derivativeTable = root.find('derivativeTable')
+
+        # Search for option acquisitions
+        strike_price = []
+        exp_date = []
+        amt = []
+        if derivativeTable:
+            for transaction in derivativeTable.findall('derivativeTransaction'):
+                securityTitle = transaction.find('securityTitle')
+                price = transaction.find('conversionOrExercisePrice')
+                transactionAmounts = transaction.find('transactionAmounts')
+                expirationDate = transaction.find('expirationDate')
+
+                if 'Stock Option' in securityTitle[0].text and 'A' in transactionAmounts.find('transactionAcquiredDisposedCode')[0].text:
+                    strike_price += [price[0].text]
+                    exp_date += [expirationDate[0].text]
+                    amt += [transactionAmounts.find('transactionShares')[0].text]
+
+                if len(strike_price) > 0:
+                    # res.write('Option found for ' + company + '\n')
+                    # res.write('Strikes are: ' + '\t'.join(strike_price) + '\n')
+                    # res.write('Exp dates are: ' + '\t'.join(exp_date) + '\n')
+                    # res.write('Amts are: ' + '\t'.join(amt) + '\n\n')
+                    print(final_url)
+                    print('Current Company form: ' + company_name)
+                    print(strike_price)
+                    print(exp_date)
+                    print(amt)    
+
+    except:
+        print('Failed on: ' + company_name)
+        return None
+
+    pass
+
 date = getDate()
 base_url = 'https://www.sec.gov/Archives/'
 daily_url = base_url + 'edgar/daily-index/' + date['year'] + '/' + date['quarter'] + '/form.' + date['today_format'] + '.idx'
@@ -56,9 +118,12 @@ company_ticker = pd.read_csv('ticker-company.csv', header = 0)
 for line in rows:
     str_line = line.decode('utf-8')
     str_split = [splits for splits in str_line.split(' ') if splits is not '']
-    formType = str_split[0]
+    form_type = str_split[0]
+    # Might need a list to hold all options option_list = []
 
-    if formType == '4':
+    if form_type == '4':
+        # current_options = searchForOptions(str_split)
+        # if current_options: option_list += current_options
         file_path = str_split[-2]
         file_date = str_split[-3]
         cik = str_split[-4]
