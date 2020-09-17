@@ -10,8 +10,6 @@ import pandas as pd
 import re
 import xml.etree.ElementTree as ET
 
-import time
-
 # Returns day as dict with keys: year, month, day, quarter, today, and today_format
 def getDate():
     res = {}
@@ -30,7 +28,8 @@ def getDate():
     print("Current Date: " + today.strftime('%m/%d/%y'))
     return res
 
-def searchForOptions(report):
+# (company_name, [(strike, expiration, quantity)])
+def searchForOptions(report): # try to return as (Company Name, [strike price, exp date, amount])
     file_path = report[-2]
     file_date = report[-3]
     cik = report[-4]
@@ -38,7 +37,7 @@ def searchForOptions(report):
     temp = ' '.join(report)
     company_name = temp.split('/')[0].split('\\')[0]
 
-    optionsReport = {}
+    optionList = []
 
     # Is company listed on NASDAQ?
     if company_ticker['Company Name'].str.contains(company_name).sum() <= 0:
@@ -60,9 +59,6 @@ def searchForOptions(report):
         derivativeTable = root.find('derivativeTable')
 
         # Search for option acquisitions
-        strike_price = []
-        exp_date = []
-        amt = []
         if derivativeTable:
             for transaction in derivativeTable.findall('derivativeTransaction'):
                 securityTitle = transaction.find('securityTitle')
@@ -71,58 +67,59 @@ def searchForOptions(report):
                 expirationDate = transaction.find('expirationDate')
 
                 if 'Stock Option' in securityTitle[0].text and 'A' in transactionAmounts.find('transactionAcquiredDisposedCode')[0].text:
-                    strike_price += [price[0].text]
-                    exp_date += [expirationDate[0].text]
-                    amt += [transactionAmounts.find('transactionShares')[0].text]
-
-                if len(strike_price) > 0:
-                    print(final_url)
-                    print('Current Company form: ' + company_name)
-                    print(strike_price)
-                    print(exp_date)
-                    print(amt)    
+                    optionList += (price[0].text, expirationDate[0].text, transactionAmounts.find('transactionShares')[0].text)  
 
     except:
         print('Failed on: ' + company_name)
-        return None
+    
+    return (company_name, optionList) if (len(optionList) > 0) else None
 
-    pass
+def retrieveDailyOptions():
+    
+    global base_url
+    global company_ticker 
 
-date = getDate()
+    base_url = 'https://www.sec.gov/Archives/'
+    company_ticker = pd.read_csv('ticker-company.csv', header = 0)
+    date = getDate()
+    res = {}
+    daily_url = ''.join([base_url, 'edgar/daily-index/', date['year'], date['quarter'], '/form.', date['today_format'], '.idx']) 
+    print('idx link: ' + daily_url)
 
-base_url = 'https://www.sec.gov/Archives/'
-daily_url = ''.join([base_url, 'edgar/daily-index/', date['year'], date['quarter'], '/form.', date['today_format'], '.idx']) 
-print('idx link: ' + daily_url)
+    # HARDCODED URL. REMOVE SOMETIME##
+    HARDCODED_URL = 'https://www.sec.gov/Archives/edgar/daily-index/2020/QTR3/form.20200914.idx'
+    daily_url = HARDCODED_URL
+    ##################################
 
-# HARDCODED URL. REMOVE SOMETIME##
-HARDCODED_URL = 'https://www.sec.gov/Archives/edgar/daily-index/2020/QTR3/form.20200914.idx'
-daily_url = HARDCODED_URL
-##################################
+    try:
+        file = urllib.request.urlopen(daily_url)
+    except urllib.error.HTTPError:
+        print('ERROR: Report not released yet. Go back a day')
+        file = None
 
-try:
-    file = urllib.request.urlopen(daily_url)
-except urllib.error.HTTPError:
-    print('ERROR: Report not released yet. Go back a day')
-    file = None
+    if file == None:
+        print('No file, exiting')
+        return res
 
-if file == None:
-    print('No file, exiting')
-    exit()
+    rows = file.readlines()[11:]
 
-rows = file.readlines()[11:]
-company_ticker = pd.read_csv('ticker-company.csv', header = 0)
+    # Search for companies with form 4 filled out
+    for line in rows:
+        str_line = line.decode('utf-8')
+        str_split = [splits for splits in str_line.split(' ') if splits != '']
+        form_type = str_split[0]
 
-# Search for companies with form 4 filled out
-for line in rows:
-    str_line = line.decode('utf-8')
-    str_split = [splits for splits in str_line.split(' ') if splits != '']
-    form_type = str_split[0]
-    # Might need a list to hold all options option_list = []
+        if form_type == '4':
+            currentOptions = searchForOptions(str_split)
+            if currentOptions:
+                if currentOptions[0] in res:
+                    res[currentOptions[0]] += currentOptions[1]
+                else:
+                    res[currentOptions[0]] = currentOptions[1]
+    
+    return res
 
-    if form_type == '4':
-        # current_options = searchForOptions(str_split)
-        # if current_options: option_list += current_options
-        start = time.perf_counter()
-        searchForOptions(str_split)
-        end = time.perf_counter()
-        print('SearchForOptions runtime:', end-start)
+company_ticker = None
+base_url = None
+
+print(retrieveDailyOptions())
