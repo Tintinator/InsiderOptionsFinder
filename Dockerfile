@@ -6,6 +6,7 @@ WORKDIR /app
 COPY    requirements.txt /app/
 RUN     pip install -r requirements.txt
 
+COPY	ticker-company.csv /app/
 COPY    stock_retrieval.py /app/
 RUN     chmod a+x stock_retrieval.py
 

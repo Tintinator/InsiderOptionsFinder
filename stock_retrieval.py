@@ -117,7 +117,7 @@ company_ticker = pd.read_csv('ticker-company.csv', header = 0)
 # Search for companies with form 4 filled out
 for line in rows:
     str_line = line.decode('utf-8')
-    str_split = [splits for splits in str_line.split(' ') if splits is not '']
+    str_split = [splits for splits in str_line.split(' ') if splits != '']
     form_type = str_split[0]
     # Might need a list to hold all options option_list = []
 
