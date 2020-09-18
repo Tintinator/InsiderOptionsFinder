@@ -8,24 +8,32 @@ from datetime import date
 from datetime import timedelta
 import pandas as pd
 import re
+import warnings
 import xml.etree.ElementTree as ET
 
 # Returns day as dict with keys: year, month, day, quarter, today, and today_format
-def getDate():
+def getDate(inputDate = None):
     res = {}
-    today = date.today() - timedelta(days = 0) 
-    year = today.strftime('%Y')
-    month = today.strftime('%m')
-    day = today.strftime('%d')
+    if inputDate: 
+        res['today'] = inputDate
+        inputDate = inputDate.split('-')
+        year = inputDate[0]
+        month = inputDate[1]
+        day = inputDate[2]
+    else:
+        today = date.today() - timedelta(days = 0) 
+        res['today'] = str(today)
+        year = today.strftime('%Y')
+        month = today.strftime('%m')
+        day = today.strftime('%d')
+
     today_format = ''.join([year + month + day])
     quarter = 'QTR' + str(int((int(month)-1)/3 + 1))
-    res['today'] = today
     res['year'] = year
     res['month'] = month
     res['day'] = day
     res['today_format'] = today_format
     res['quarter'] = quarter
-    print("Current Date: " + today.strftime('%m/%d/%y'))
     return res
 
 # (company_name, [(strike, expiration, quantity)])
@@ -67,34 +75,29 @@ def searchForOptions(report): # try to return as (Company Name, [strike price, e
                 expirationDate = transaction.find('expirationDate')
 
                 if 'Stock Option' in securityTitle[0].text and 'A' in transactionAmounts.find('transactionAcquiredDisposedCode')[0].text:
-                    optionList += (price[0].text, expirationDate[0].text, transactionAmounts.find('transactionShares')[0].text)  
+                    optionList.append(tuple([price[0].text, expirationDate[0].text, transactionAmounts.find('transactionShares')[0].text]))  
 
     except:
         print('Failed on: ' + company_name)
-    
+
     return (company_name, optionList) if (len(optionList) > 0) else None
 
-def retrieveDailyOptions():
+def retrieveOptions(inputDate = None):
     
     global base_url
     global company_ticker 
 
     base_url = 'https://www.sec.gov/Archives/'
     company_ticker = pd.read_csv('ticker-company.csv', header = 0)
-    date = getDate()
+    date = getDate(inputDate)
     res = {}
-    daily_url = ''.join([base_url, 'edgar/daily-index/', date['year'], date['quarter'], '/form.', date['today_format'], '.idx']) 
+    daily_url = ''.join([base_url, 'edgar/daily-index/', date['year'], '/', date['quarter'], '/form.', date['today_format'], '.idx']) 
     print('idx link: ' + daily_url)
-
-    # HARDCODED URL. REMOVE SOMETIME##
-    HARDCODED_URL = 'https://www.sec.gov/Archives/edgar/daily-index/2020/QTR3/form.20200914.idx'
-    daily_url = HARDCODED_URL
-    ##################################
 
     try:
         file = urllib.request.urlopen(daily_url)
     except urllib.error.HTTPError:
-        print('ERROR: Report not released yet. Go back a day')
+        print('ERROR: Report does not exist for today.')
         file = None
 
     if file == None:
@@ -119,7 +122,10 @@ def retrieveDailyOptions():
     
     return res
 
+warnings.filterwarnings("ignore", category=UserWarning)
+
 company_ticker = None
 base_url = None
 
-print(retrieveDailyOptions())
+print(retrieveOptions('2020-09-17'))
+print(retrieveOptions('2020-09-16'))
