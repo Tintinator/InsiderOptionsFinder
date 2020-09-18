@@ -82,6 +82,7 @@ def searchForOptions(report): # try to return as (Company Name, [strike price, e
 
     return (company_name, optionList) if (len(optionList) > 0) else None
 
+# returns None upon error, else {'company': [(strike, exp, amount)...]}
 def retrieveOptions(inputDate = None):
     
     global base_url
@@ -97,12 +98,11 @@ def retrieveOptions(inputDate = None):
     try:
         file = urllib.request.urlopen(daily_url)
     except urllib.error.HTTPError:
-        print('ERROR: Report does not exist for today.')
+        print('ERROR: Report does not exist for this date.')
         file = None
 
     if file == None:
-        print('No file, exiting')
-        return res
+        return 'No report file exists for this date.'
 
     rows = file.readlines()[11:]
 
@@ -120,12 +120,8 @@ def retrieveOptions(inputDate = None):
                 else:
                     res[currentOptions[0]] = currentOptions[1]
     
-    return res
+    return "No options filed" if (len(res.keys()) <= 0) else res
 
 warnings.filterwarnings("ignore", category=UserWarning)
-
 company_ticker = None
 base_url = None
-
-print(retrieveOptions('2020-09-17'))
-print(retrieveOptions('2020-09-16'))
