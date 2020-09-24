@@ -1,8 +1,10 @@
 import React from "react";
-import "../styles/Home.css";
-import CustomButton from "./CustomButton";
 import { Input, Label, FormGroup } from "reactstrap";
 import { getOptions } from "../api/Options";
+import CustomButton from "./CustomButton";
+import OptionsTable from "./OptionsTable";
+
+import "../styles/Home.css";
 
 function getCurrentDate() {
   var dt = new Date();
@@ -19,7 +21,6 @@ function Home() {
   const [optionsData, setOptionsData] = React.useState("");
   const fetchOptionsData = async (date) => {
     const data = await getOptions(date);
-    console.log(data);
     setOptionsData(data);
   };
 
@@ -53,7 +54,11 @@ function Home() {
           }}
         />
       </div>
-      <div className="ResultsContainer">asdf</div>
+      <div className="ResultsContainer">
+        <div className="OptionsTable">
+          <OptionsTable date={date} data={optionsData} />
+        </div>
+      </div>
     </div>
   );
 }
