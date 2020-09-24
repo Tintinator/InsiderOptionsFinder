@@ -18,6 +18,6 @@ def getOptions():
     print("THIS IS THE INPUT DATE:", inputDate, file=sys.stderr)
     app.logger.info('This is the inputDate parameter: ', inputDate)
     res = retrieveOptions(inputDate)
-    return res
+    return jsonify(res)
 
 app.run(host = '0.0.0.0')

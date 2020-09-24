@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Button } from "reactstrap";
 
-class DateButton extends Component {
+class CustomButton extends Component {
   render() {
     const { onClickHandler, name } = this.props;
 
@@ -13,4 +13,4 @@ class DateButton extends Component {
   }
 }
 
-export default DateButton;
+export default CustomButton;

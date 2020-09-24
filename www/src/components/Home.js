@@ -1,7 +1,8 @@
 import React from "react";
 import "../styles/Home.css";
-import DateButton from "./DateButton";
+import CustomButton from "./CustomButton";
 import { Input, Label, FormGroup } from "reactstrap";
+import { getOptions } from "../api/Options";
 
 function getCurrentDate() {
   var dt = new Date();
@@ -14,11 +15,18 @@ function getCurrentDate() {
 
 function Home() {
   const [date, setDate] = React.useState("");
+  const [isLoaded, setIsLoaded] = React.useState("");
+  const [optionsData, setOptionsData] = React.useState("");
+  const fetchOptionsData = async (date) => {
+    const data = await getOptions(date);
+    console.log(data);
+    setOptionsData(data);
+  };
 
   return (
     <div className="Home">
       <div className="DateEntryContainer">
-        <DateButton
+        <CustomButton
           name="Today's Date"
           onClickHandler={() => {
             // set date as YYYY-MM-DD
@@ -38,8 +46,12 @@ function Home() {
             value={date}
           />
         </FormGroup>
-
-        <DateButton name="Search" />
+        <CustomButton
+          name="Search"
+          onClickHandler={() => {
+            fetchOptionsData();
+          }}
+        />
       </div>
       <div className="ResultsContainer">asdf</div>
     </div>
