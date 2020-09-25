@@ -20,6 +20,7 @@ function Home() {
   const [isLoaded, setIsLoaded] = React.useState("");
   const [optionsData, setOptionsData] = React.useState("");
   const fetchOptionsData = async (date) => {
+    date = date.length === 0 ? getCurrentDate() : date;
     const data = await getOptions(date);
     setOptionsData(data);
   };
@@ -50,7 +51,7 @@ function Home() {
         <CustomButton
           name="Search"
           onClickHandler={() => {
-            fetchOptionsData();
+            fetchOptionsData(date);
           }}
         />
       </div>

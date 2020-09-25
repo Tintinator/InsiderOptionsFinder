@@ -86,7 +86,7 @@ def searchForOptions(report): # try to return as (Company Name, [strike price, e
     except:
         print('Failed on: ' + company_name)
 
-    return (company_name, optionList) if (len(optionList) > 0) else None
+    return optionList if (len(optionList) > 0) else None
 
 # returns message upon error, else {'data': [{name, strike, expiry, quantity},{},...]}
 # input date yyyy-mm-dd
@@ -129,3 +129,5 @@ def retrieveOptions(inputDate = None):
 warnings.filterwarnings("ignore", category=UserWarning)
 company_ticker = None
 base_url = None
+
+# print(retrieveOptions("2020-09-06"))

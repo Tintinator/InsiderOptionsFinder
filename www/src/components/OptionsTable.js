@@ -91,7 +91,7 @@ const OptionsTable = (props) => {
       </thead>
       <tbody>
         {items.map((item) => (
-          <tr key={item.id}>
+          <tr key={item.name}>
             <td>{item.name}</td>
             <td>${item.strike}</td>
             <td>{item.expiry}</td>
