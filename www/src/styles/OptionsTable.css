@@ -1,11 +1,16 @@
 table {
   width: 100%;
   border-collapse: collapse;
+  color: black;
+  text-align: left;
+  border: 1px solid black;
 }
 
 .Caption {
   text-align: center;
   caption-side: top;
+  color: black;
+  border: 1px solid black;
 }
 
 thead th {

@@ -56,7 +56,7 @@ function Home() {
       </div>
       <div className="ResultsContainer">
         <div className="OptionsTable">
-          <OptionsTable date={date} data={optionsData} />
+          {optionsData && <OptionsTable date={date} data={optionsData.data} />}
         </div>
       </div>
     </div>

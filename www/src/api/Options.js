@@ -6,6 +6,20 @@ export const getOptions = async function getOptions(date, options = {}) {
       ["4.5700", "2030-09-15", "20000.0000"],
       ["4.5700", "2030-09-15", "3750.0000"],
     ],
+    data: [
+      {
+        name: "CorMedix Inc",
+        strike: "4.57",
+        expiry: "2030-09-15",
+        quantity: "20000.0000",
+      },
+      {
+        name: "Test Laboratories Inc",
+        strike: "6.9",
+        expiry: "2041-09-15",
+        quantity: "6900.0000",
+      },
+    ],
   };
 
   return fakeData;
