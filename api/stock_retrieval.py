@@ -36,7 +36,7 @@ def getDate(inputDate = None):
     res['quarter'] = quarter
     return res
 
-# (company_name, [(strike, expiration, quantity)])
+# {(company_name, [(strike, expiration, quantity)])}
 def searchForOptions(report): # try to return as (Company Name, [strike price, exp date, amount])
     file_path = report[-2]
     file_date = report[-3]
@@ -75,14 +75,21 @@ def searchForOptions(report): # try to return as (Company Name, [strike price, e
                 expirationDate = transaction.find('expirationDate')
 
                 if 'Stock Option' in securityTitle[0].text and 'A' in transactionAmounts.find('transactionAcquiredDisposedCode')[0].text:
-                    optionList.append(tuple([price[0].text, expirationDate[0].text, transactionAmounts.find('transactionShares')[0].text]))  
+                    optionDict = {
+                        "name": company_name,
+                        "strike": price[0].text,
+                        "expiry": expirationDate[0].text,
+                        "quantity": transactionAmounts.find('transactionShares')[0].text
+                    }
+                    optionList.append(optionDict) 
 
     except:
         print('Failed on: ' + company_name)
 
     return (company_name, optionList) if (len(optionList) > 0) else None
 
-# returns None upon error, else {'company': [(strike, exp, amount)...]}
+# returns message upon error, else {'data': [{name, strike, expiry, quantity},{},...]}
+# input date yyyy-mm-dd
 def retrieveOptions(inputDate = None):
     
     global base_url
@@ -91,7 +98,7 @@ def retrieveOptions(inputDate = None):
     base_url = 'https://www.sec.gov/Archives/'
     company_ticker = pd.read_csv('ticker-company.csv', header = 0)
     date = getDate(inputDate)
-    res = {}
+    res = []
     daily_url = ''.join([base_url, 'edgar/daily-index/', date['year'], '/', date['quarter'], '/form.', date['today_format'], '.idx']) 
     print('idx link: ' + daily_url)
 
@@ -115,12 +122,9 @@ def retrieveOptions(inputDate = None):
         if form_type == '4':
             currentOptions = searchForOptions(str_split)
             if currentOptions:
-                if currentOptions[0] in res:
-                    res[currentOptions[0]] += currentOptions[1]
-                else:
-                    res[currentOptions[0]] = currentOptions[1]
+                res += currentOptions
     
-    return "No options filed" if (len(res.keys()) <= 0) else res
+    return {"data": "No options filed"} if (len(res) <= 0) else {"data": res}
 
 warnings.filterwarnings("ignore", category=UserWarning)
 company_ticker = None
