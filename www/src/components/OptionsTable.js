@@ -1,7 +1,8 @@
 import React from "react";
+import { Alert } from "reactstrap";
 import "../styles/OptionsTable.css";
 
-const useSortableData = (items, config = null) => {
+const useSortableData = (items = [], config = null) => {
   const [sortConfig, setSortConfig] = React.useState(config);
   const sortedItems = React.useMemo(() => {
     let sortableItems = [...items];
@@ -28,8 +29,6 @@ const useSortableData = (items, config = null) => {
     ) {
       direction = "descending";
     }
-
-    console.log(direction);
     setSortConfig({ key, direction });
   };
 
@@ -45,6 +44,10 @@ const OptionsTable = (props) => {
     }
     return sortConfig.key === name ? sortConfig.direction : undefined;
   };
+
+  if (data == undefined) {
+    return <Alert color="primary">Options do not exist for {date}</Alert>;
+  }
 
   return (
     <table>

@@ -36,8 +36,8 @@ def getDate(inputDate = None):
     res['quarter'] = quarter
     return res
 
-# {(company_name, [(strike, expiration, quantity)])}
-def searchForOptions(report): # try to return as (Company Name, [strike price, exp date, amount])
+# {expiry: "", name: "", quantity: "", strike: ""}
+def searchForOptions(report):
     file_path = report[-2]
     file_date = report[-3]
     cik = report[-4]
@@ -98,6 +98,7 @@ def retrieveOptions(inputDate = None):
     base_url = 'https://www.sec.gov/Archives/'
     company_ticker = pd.read_csv('ticker-company.csv', header = 0)
     date = getDate(inputDate)
+    print(date)
     res = []
     daily_url = ''.join([base_url, 'edgar/daily-index/', date['year'], '/', date['quarter'], '/form.', date['today_format'], '.idx']) 
     print('idx link: ' + daily_url)
@@ -124,10 +125,10 @@ def retrieveOptions(inputDate = None):
             if currentOptions:
                 res += currentOptions
     
-    return {"data": "No options filed"} if (len(res) <= 0) else {"data": res}
+    return "No filed options exists for this data" if (len(res) <= 0) else {"data": res}
 
 warnings.filterwarnings("ignore", category=UserWarning)
 company_ticker = None
 base_url = None
 
-# print(retrieveOptions("2020-09-06"))
+# print(retrieveOptions("2020-10-23"))

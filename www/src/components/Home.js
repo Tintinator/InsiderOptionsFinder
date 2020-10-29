@@ -17,7 +17,6 @@ function getCurrentDate() {
 
 function Home() {
   const [date, setDate] = React.useState("");
-  const [isLoaded, setIsLoaded] = React.useState("");
   const [optionsData, setOptionsData] = React.useState("");
   const fetchOptionsData = async (date) => {
     date = date.length === 0 ? getCurrentDate() : date;
